@@ -136,4 +136,4 @@ button:hover {background-color:rgb(22 93 255 / 5%)}
 }
 @media (prefers-reduced-motion:reduce) {button {transition:none}}
 
-.resource-feedback {position:static;width:100%;font-size:14px;color:var(--color-muted)}
+.resource-feedback {position:static;width:100%;font-size:14px;line-height:22px;color:var(--color-muted)}

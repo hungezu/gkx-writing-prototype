@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import {chromium} from 'playwright';
+const url = process.argv[2] || 'http://127.0.0.1:5173';
+const browser = await chromium.launch({channel:'chrome',headless:true});
+const page = await browser.newPage({viewport:{width:1920,height:980},acceptDownloads:true});
+const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.goto(url,{waitUntil:'networkidle'});
+const n=id=>page.locator(`[data-node-id="${id}"]`);
+const dialog=page.locator('dialog');
+const checks=[];
+async function check(name,fn) {await fn();checks.push(name);}
+async function close() {await page.getByRole('button',{name:'关闭弹窗',exact:true}).click();await page.waitForFunction(()=>!document.querySelector('dialog').open);}
+await check('空需求发送提示',async()=>{await page.getByRole('button',{name:'发送报告需求'}).click();assert.match(await page.getByRole('status').innerText(),/请先填写/);});
+await check('报告类型切换',async()=>{await n('7:51').click();await dialog.getByRole('button',{name:'研究报告',exact:true}).click();assert.match(await n('7:51').innerText(),/研究报告/);});
+await check('项目切换',async()=>{await n('1:260').click();await dialog.getByRole('button',{name:'新兴产业布局',exact:true}).click();assert.match(await n('1:260').innerText(),/新兴产业布局/);});
+await check('模型选项切换',async()=>{await page.getByRole('button',{name:'选择模型'}).click();await dialog.getByRole('button',{name:'DeepSeek V3',exact:true}).click();assert.match(await n('1:314').innerText(),/DeepSeek V3/);});
+await check('模板选项切换',async()=>{await n('1:328').click();await dialog.getByRole('button',{name:'产业研究报告',exact:true}).click();});
+await check('技能多选与状态保留',async()=>{await n('1:324').click();await dialog.getByRole('button',{name:'证据核验',exact:true}).click();await dialog.getByRole('button',{name:'报告写作',exact:true}).click();await dialog.getByRole('button',{name:'完成选择'}).click();await n('1:324').click();assert.equal(await dialog.getByRole('button',{name:/证据核验/}).getAttribute('aria-pressed'),'true');await close();});
+await check('需求提交、结构预览与下载',async()=>{await page.getByRole('textbox',{name:'报告需求'}).fill('分析深圳低空经济产业链，核验关键数据并提出培育建议。');await page.getByRole('button',{name:'发送报告需求'}).click();assert.match(await dialog.innerText(),/产业研究报告/);assert.match(await dialog.innerText(),/DeepSeek V3/);assert.match(await dialog.innerText(),/证据核验、报告写作/);const downloadPromise=page.waitForEvent('download');await dialog.getByRole('button',{name:'下载草稿'}).click();const download=await downloadPromise;assert.equal(download.suggestedFilename(),'报告创作草稿.md');await download.saveAs('design/qa/downloaded-draft.md');await page.screenshot({path:'design/qa/report-preview.png'});await close();});
+await check('浏览器刷新后恢复草稿',async()=>{await page.reload({waitUntil:'networkidle'});await n('1:186').click();await dialog.getByRole('button',{name:'查看上次创作草稿'}).click();assert.match(await dialog.innerText(),/深圳低空经济产业链/);await close();});
+await check('项目树展开折叠',async()=>{await n('1:102').click();assert.equal(await n('1:109').isVisible(),false);await n('1:102').click();assert.equal(await n('1:109').isVisible(),true);});
+await check('项目与最近切换',async()=>{await n('I1:88;1736:170').click();assert.equal(await n('1:102').isVisible(),false);assert.equal(await n('1:109').isVisible(),true);await n('I1:88;1736:167').click();});
+await check('报告选择',async()=>{await n('1:119').click();assert.match(await dialog.innerText(),/大湾区低空经济区域竞争比较/);await close();assert.equal(await n('1:119').getAttribute('aria-pressed'),'true');});
+await check('侧栏展开折叠',async()=>{await n('1:70').click();assert.equal(await n('1:82').isVisible(),false);await n('1:70').click();assert.equal(await n('1:82').isVisible(),true);});
+await check('技能分类筛选',async()=>{await n('7:91').click();assert.equal(await n('7:91').getAttribute('aria-pressed'),'true');assert.match(await page.locator('.resource-feedback').innerText(),/证据核验/);});
+await check('知识库切换',async()=>{await n('7:65').click();assert.equal(await n('7:65').getAttribute('aria-pressed'),'true');assert.match(await page.locator('.resource-feedback').innerText(),/知识库/);});
+await check('顶部入口与 Escape 关闭',async()=>{await n('1:171').click();assert.match(await dialog.innerText(),/科学研究/);await page.keyboard.press('Escape');assert.equal(await dialog.getAttribute('open'),null);});
+await check('新建报告清空输入',async()=>{await page.getByRole('textbox',{name:'报告需求'}).fill('旧需求');await n('1:89').click();assert.equal(await page.getByRole('textbox',{name:'报告需求'}).inputValue(),'');});
+await check('移动端项目抽屉与输入',async()=>{await page.setViewportSize({width:390,height:844});await page.reload({waitUntil:'networkidle'});await n('1:70').click();assert.equal(await n('1:82').isVisible(),true);await n('1:70').click();assert.equal(await n('1:82').isVisible(),false);await page.getByRole('textbox',{name:'报告需求'}).fill('移动端报告需求');await page.getByRole('button',{name:'发送报告需求'}).click();assert.match(await dialog.innerText(),/移动端报告需求/);await close();});
+assert.deepEqual(errors,[]);
+await fs.writeFile('design/qa/interaction-checks.json',JSON.stringify({url,checks,errors},null,2));console.log(JSON.stringify({passed:checks.length,checks,errors},null,2));await browser.close();

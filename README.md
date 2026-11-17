@@ -16,7 +16,7 @@ node scripts/qa.mjs
 node scripts/interactions.mjs
 ```
 
-QA 脚本使用本机 Chrome，截图和验证记录在 `design/qa/`。在 1920 × 980 基准下，8 个关键容器的位置与尺寸与设计相同；其他窗口尺寸做响应式适配。视觉规则详见 `DESIGN_RULES.md`。
+QA 脚本使用本机 Chrome，截图和验证记录在 `design/qa/`。初版在 1920 × 980 基准下，8 个关键容器的位置与尺寸与设计相同；后续按浏览器标注调整固定侧栏、滚动条和分类字号，其他窗口尺寸做响应式适配。视觉规则详见 `DESIGN_RULES.md`。
 
 ## 原型范围
 

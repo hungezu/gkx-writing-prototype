@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import FigmaPage from './FigmaPage';
+import ProgressRing from './ProgressRing';
 
 const reportTypes = ['战略分析报告', '研究报告', '洞察报告'];
 const projects = ['低空经济战略研究', '新兴产业布局', '独立报告'];
@@ -35,6 +36,8 @@ export default function App() {
   const [toast, setToast] = useState('');
   const [resourceTouched, setResourceTouched] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(100);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const lastFocus = useRef<HTMLElement | null>(null);
   useEffect(() => {
@@ -45,6 +48,18 @@ export default function App() {
     if (!modal && dialogRef.current?.open) { dialogRef.current.close(); lastFocus.current?.focus(); }
   }, [modal]);
   useEffect(() => { if (toast) { const timer = window.setTimeout(() => setToast(''), 3200); return () => window.clearTimeout(timer); } }, [toast]);
+  useEffect(() => {
+    if (!generating) return;
+    const timer = window.setInterval(() => setGenerationProgress(value => Math.min(100, value + 20)), 400);
+    return () => window.clearInterval(timer);
+  }, [generating]);
+  useEffect(() => {
+    if (!generating || generationProgress < 100 || !draft) return;
+    setGenerating(false);
+    try { localStorage.setItem('gkx-writing-prototype:last-draft', JSON.stringify(draft)); } catch { /* Private browsing may disable storage. */ }
+    setModal(current => current?.kind === 'generating' ? {kind:'draft', title:'报告创作预览'} : current);
+    setToast('报告草稿演示已完成');
+  }, [generationProgress, generating, draft]);
   const focusPrompt = () => requestAnimationFrame(() => document.querySelector<HTMLTextAreaElement>('[data-node-id="7:62"]')?.focus());
   function onAction(action: string, value = '') {
     switch (action) {
@@ -65,11 +80,13 @@ export default function App() {
       case 'library': setLibrary(value); setCategory('全部'); setResourceTouched(true); break;
       case 'category': setCategory(value); setResourceTouched(true); break;
       case 'send': {
+        if (generating) { setModal({kind:'generating', title:'报告生成进度'}); return; }
         if (!prompt.trim()) { setToast('请先填写报告需求'); focusPrompt(); return; }
         const nextDraft = {title: prompt.trim().slice(0, 30), prompt: prompt.trim(), type: reportType, project, model, template, skills: selectedSkills};
         setDraft(nextDraft);
-        try { localStorage.setItem('gkx-writing-prototype:last-draft', JSON.stringify(nextDraft)); } catch { /* Private browsing may disable storage. */ }
-        setModal({kind: 'draft', title: '报告创作预览'}); break;
+        setSelectedReport('generated'); setGenerationProgress(0); setGenerating(true);
+        requestAnimationFrame(() => { const list = document.querySelector<HTMLElement>('[data-node-id="1:100"]'); if (list) list.scrollTop = list.scrollHeight; });
+        setModal({kind: 'generating', title: '报告生成进度'}); break;
       }
       case 'navigation': if (value === '战略咨询') setToast('当前页面：战略咨询 · 智能创作报告'); else setModal({kind: 'module', title: value}); break;
       case 'utility': setModal({kind: 'utility', title: value}); break;
@@ -98,7 +115,7 @@ export default function App() {
     catch { setToast('暂无可读取的本地草稿'); }
   }
   return <>
-    <FigmaPage {...{onAction, prompt, setPrompt, model, reportType, project, category, library, projectMode, collapsed, closedGroups, selectedReport}} resourceFeedback={resourceTouched && <section className="resource-feedback" aria-live="polite"><p>{library === '知识库' ? `暂无${category === '全部' ? '' : category}知识库内容` : `暂无${category === '全部' ? '' : category}技能条目`}</p><p>当前设计稿未提供资源条目，已保留筛选状态。</p></section>} />
+    <FigmaPage {...{onAction, prompt, setPrompt, model, reportType, project, category, library, projectMode, collapsed, closedGroups, selectedReport}} generatedReport={draft && <button className="generated-report" onClick={() => setModal({kind:generating?'generating':'draft',title:generating?'报告生成进度':'报告创作预览'})}><ProgressRing value={generationProgress} label="当前报告生成进度" /><p className="generated-report-title">{draft.title}</p><div className="generated-report-meta"><span>{draft.type}</span><span>{generating ? `${generationProgress}%` : '已完成'}</span></div></button>} resourceFeedback={resourceTouched && <section className="resource-feedback" aria-live="polite"><p>{library === '知识库' ? `暂无${category === '全部' ? '' : category}知识库内容` : `暂无${category === '全部' ? '' : category}技能条目`}</p><p>当前设计稿未提供资源条目，已保留筛选状态。</p></section>} />
     {toast && <div className="toast" role="status">{toast}</div>}
     <dialog ref={dialogRef} className="prototype-dialog" onCancel={() => setModal(null)} onClick={event => { if (event.target === event.currentTarget) { const rect = event.currentTarget.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) setModal(null); } }} aria-labelledby="dialog-title">
       <div className="dialog-header"><h2 id="dialog-title">{modal?.title}</h2><button className="close-button" aria-label="关闭弹窗" onClick={() => setModal(null)}>×</button></div>
@@ -112,7 +129,8 @@ export default function App() {
         {modal?.kind === 'utility' && <>
           {modal.title === '李科' ? <><p>李科</p><p className="dialog-note">深圳国际科技信息中心 · 原型演示账号</p></> : modal.title === '工作台' ? <><p>智能创作报告</p><p className="dialog-note">可在此继续查看本机上次保存的报告草稿。</p><button className="option-button" style={{width:'100%'}} onClick={restoreDraft}>查看上次创作草稿</button></> : <p>{modal.title === '待办中心' ? '暂无待办事项' : '暂无新消息'}</p>}
         </>}
-        {modal?.kind === 'existing' && <><p className="dialog-note">设计稿中的报告示例；未提供报告正文。</p><p>所属项目：{reportData[modal.value!]?.[2]}</p><p>报告类型：{reportData[modal.value!]?.[1]}</p><div className="dialog-footer"><button className="primary-button" onClick={() => { setModal(null); focusPrompt(); }}>填写创作需求</button></div></>}
+        {modal?.kind === 'existing' && <><p className="dialog-note">设计稿中的报告示例；未提供报告正文。</p><p>所属项目：{reportData[modal.value!]?.[2]}</p><p>报告类型：{reportData[modal.value!]?.[1]}</p>{modal.value === '1:128' && <p className="generation-status"><ProgressRing value={65} label="示例报告生成进度" />生成进度：65%（演示数据）</p>}<div className="dialog-footer"><button className="primary-button" onClick={() => { setModal(null); focusPrompt(); }}>填写创作需求</button></div></>}
+        {modal?.kind === 'generating' && <><p className="generation-status"><ProgressRing value={generationProgress} label="报告生成进度" />正在生成：{generationProgress}%</p><p className="dialog-note">本地原型进度演示，未连接实际模型服务。完成后可查看报告结构草稿。</p><div className="dialog-footer"><button className="secondary-button" onClick={() => setModal(null)}>后台查看进度</button></div></>}
         {modal?.kind === 'draft' && draft && <>
           <p className="dialog-note">原型草稿 · 已保存在本机浏览器。未连接模型服务，以下为报告结构示例。</p>
           <div className="report-preview"><p>项目：{draft.project}　类型：{draft.type}</p><p>模型选项：{draft.model}</p><p>模板：{draft.template}　技能：{draft.skills.join('、') || '未选择'}</p><h3>写作需求</h3><p>{draft.prompt}</p><h3>一、研究背景与目标</h3><p>待补充研究范围、时间窗口和关键问题。</p><h3>二、证据与分析</h3><p>待补充权威数据、来源引用和分析过程。</p><h3>三、战略判断与建议</h3><p>待补充结论、判断依据和实施建议。</p></div>

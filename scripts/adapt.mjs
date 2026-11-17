@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 
 // Start from the converted Figma source; retain every original class and node ID.
 let code = await fs.readFile('src/FigmaPage.tsx', 'utf8');
-code = `import type { ReactNode } from 'react';\n` + code;
+code = `import type { ReactNode } from 'react';\nimport ProgressRing from './ProgressRing';\n` + code;
 code = code.replace(/"\/figma\/([^"\n]+)"/g, '`${import.meta.env.BASE_URL}figma/$1`');
 code = code.replace('export default function FigmaPage() {', `
 export interface ViewProps {
@@ -10,9 +10,9 @@ export interface ViewProps {
   prompt: string; setPrompt: (value: string) => void;
   model: string; reportType: string; project: string;
   category: string; library: string; projectMode: string;
-  collapsed: boolean; closedGroups: string[]; selectedReport: string; resourceFeedback?: ReactNode;
+  collapsed: boolean; closedGroups: string[]; selectedReport: string; resourceFeedback?: ReactNode; generatedReport?: ReactNode;
 }
-export default function FigmaPage({onAction, prompt, setPrompt, model, reportType, project, category, library, projectMode, collapsed, closedGroups, selectedReport, resourceFeedback}: ViewProps) {`);
+export default function FigmaPage({onAction, prompt, setPrompt, model, reportType, project, category, library, projectMode, collapsed, closedGroups, selectedReport, resourceFeedback, generatedReport}: ViewProps) {`);
 code = code.replace('data-name="高端智库"', 'data-name="高端智库" data-collapsed={collapsed} data-project-mode={projectMode}');
 
 function bounds(id) {
@@ -63,11 +63,16 @@ for (const [id, label] of [['7:69','全部'],['7:72','战略分析'],['7:82','�
 text('1:267','<p className="leading-[22px]">{project}</p>');
 text('I7:51;1907:7757','{reportType}');
 text('1:315','<p className="leading-[22px]">{model}</p>');
+text('1:300','<ProgressRing value={65} label="低空飞行服务重点企业筛选生成进度" />');
 {
   const {start,end} = bounds('7:62');
   code = code.slice(0,start) + `<textarea data-node-id="7:62" aria-label="报告需求" value={prompt} onChange={(event) => setPrompt(event.target.value)} onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') onAction('send'); }} placeholder="示例：分析深圳低空经济产业链现状，识别未来三年值得重点布局的方向，并提出产业培育建议" rows={1} className="prompt-input font-normal leading-[22px] text-[#1d2129] text-[14px]" />` + code.slice(end);
 }
 // Semantic landmarks preserve the original dimensions.
+{
+  const {end} = bounds('1:100');
+  code = code.slice(0,end-6) + '{generatedReport}' + code.slice(end-6);
+}
 {
   const {end} = bounds('7:100');
   code = code.slice(0,end-6) + '{resourceFeedback}' + code.slice(end-6);

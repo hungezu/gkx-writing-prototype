@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import ProgressRing from './ProgressRing';
 const img = `${import.meta.env.BASE_URL}figma/img.svg`;
 const imgEditObliqueLine = `${import.meta.env.BASE_URL}figma/imgEditObliqueLine.svg`;
 const imgImage1 = `${import.meta.env.BASE_URL}figma/imgImage1.png`;
@@ -50,9 +51,9 @@ export interface ViewProps {
   prompt: string; setPrompt: (value: string) => void;
   model: string; reportType: string; project: string;
   category: string; library: string; projectMode: string;
-  collapsed: boolean; closedGroups: string[]; selectedReport: string; resourceFeedback?: ReactNode;
+  collapsed: boolean; closedGroups: string[]; selectedReport: string; resourceFeedback?: ReactNode; generatedReport?: ReactNode;
 }
-export default function FigmaPage({onAction, prompt, setPrompt, model, reportType, project, category, library, projectMode, collapsed, closedGroups, selectedReport, resourceFeedback}: ViewProps) {
+export default function FigmaPage({onAction, prompt, setPrompt, model, reportType, project, category, library, projectMode, collapsed, closedGroups, selectedReport, resourceFeedback, generatedReport}: ViewProps) {
   return (
     <div className="bg-[#d8e7fc] relative size-full" data-node-id="1:60" data-name="高端智库" data-collapsed={collapsed} data-project-mode={projectMode}>
       <main className="absolute backdrop-blur-[8px] bg-[rgba(255,255,255,0.48)] border border-solid border-white content-stretch flex flex-col gap-[12px] h-[903px] items-start left-[200px] pb-[16px] pt-[12px] px-[16px] rounded-[8px] top-[61px] w-[1704px]" data-node-id="1:61">
@@ -225,9 +226,7 @@ export default function FigmaPage({onAction, prompt, setPrompt, model, reportTyp
                       </p>
                     </div>
                   </div>
-                  <div className="absolute left-[6px] size-[14px] top-[9px]" data-node-id="1:300">
-                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgEllipse14301} />
-                  </div>
+                  <div className="absolute left-[6px] size-[14px] top-[9px]" data-node-id="1:300"><ProgressRing value={65} label="低空飞行服务重点企业筛选生成进度" /></div>
                 </button>
               </div>
               <div className="content-stretch flex flex-col gap-px items-start relative shrink-0 w-full" data-node-id="1:136" data-closed={closedGroups.includes("新兴产业布局")}>
@@ -314,7 +313,7 @@ export default function FigmaPage({onAction, prompt, setPrompt, model, reportTyp
                   <div className="absolute bg-gradient-to-l from-[#f5f9fe] h-[22px] left-[200px] to-[rgba(245,249,254,0)] top-[5px] via-[#f5f9fe] via-[49.85%] w-[16px]" data-node-id="1:296" />
                 </button>
               </div>
-            </div>
+            {generatedReport}</div>
           </aside>
         </div>
       </main>

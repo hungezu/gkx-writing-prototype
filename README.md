@@ -29,3 +29,22 @@ QA 脚本使用本机 Chrome，截图和验证记录在 `design/qa/`。初版在
 ## 发布
 
 `npm run build` 生成 `dist/`。GitHub Pages 使用 `gh-pages` 分支；Vite 配置 `base: './'` 支持仓库子路径访问。只部署静态文件。
+
+## 项目与报告管理
+
+每个项目和报告都有更多菜单：重命名、删除；报告另有“移动至”。项目菜单还可新建项目。项目删除会明确提示将同时删除其中报告，支持取消。
+
+这些操作更新本机浏览器保存的列表；不涉及服务器业务数据。数据模型在 `src/workspace-data.ts`，列表和菜单在 `src/ReportTree.tsx`、`src/TreeMoreMenu.tsx`。新生成的原型报告也进入同一列表。
+
+React Bits 的 Galaxy 和 BorderGlow 来自其当前公开 registry，已随源码保存。Galaxy 放在首页创作框附近，BorderGlow 用于整体激活反馈。
+
+补充验收：
+
+```sh
+npm run preview -- --port 4173
+node scripts/interactions.mjs http://127.0.0.1:4173/
+node scripts/workspace.test.mjs http://127.0.0.1:4173/
+node scripts/annotations.test.mjs http://127.0.0.1:4173/
+```
+
+任务清单见 `design/界面标注任务清单-2026-11-17.md`。

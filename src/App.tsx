@@ -98,8 +98,7 @@ export default function App() {
     catch { setToast('暂无可读取的本地草稿'); }
   }
   return <>
-    <FigmaPage {...{onAction, prompt, setPrompt, model, reportType, project, category, library, projectMode, collapsed, closedGroups, selectedReport}} />
-    {resourceTouched && <section className="resource-feedback" aria-live="polite"><p>{library === '知识库' ? `暂无${category === '全部' ? '' : category}知识库内容` : `暂无${category === '全部' ? '' : category}技能条目`}</p><p>当前设计稿未提供资源条目，已保留筛选状态。</p></section>}
+    <FigmaPage {...{onAction, prompt, setPrompt, model, reportType, project, category, library, projectMode, collapsed, closedGroups, selectedReport}} resourceFeedback={resourceTouched && <section className="resource-feedback" aria-live="polite"><p>{library === '知识库' ? `暂无${category === '全部' ? '' : category}知识库内容` : `暂无${category === '全部' ? '' : category}技能条目`}</p><p>当前设计稿未提供资源条目，已保留筛选状态。</p></section>} />
     {toast && <div className="toast" role="status">{toast}</div>}
     <dialog ref={dialogRef} className="prototype-dialog" onCancel={() => setModal(null)} onClick={event => { if (event.target === event.currentTarget) { const rect = event.currentTarget.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) setModal(null); } }} aria-labelledby="dialog-title">
       <div className="dialog-header"><h2 id="dialog-title">{modal?.title}</h2><button className="close-button" aria-label="关闭弹窗" onClick={() => setModal(null)}>×</button></div>

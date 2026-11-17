@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 const img = `${import.meta.env.BASE_URL}figma/img.svg`;
 const imgEditObliqueLine = `${import.meta.env.BASE_URL}figma/imgEditObliqueLine.svg`;
 const imgImage1 = `${import.meta.env.BASE_URL}figma/imgImage1.png`;
@@ -49,9 +50,9 @@ export interface ViewProps {
   prompt: string; setPrompt: (value: string) => void;
   model: string; reportType: string; project: string;
   category: string; library: string; projectMode: string;
-  collapsed: boolean; closedGroups: string[]; selectedReport: string;
+  collapsed: boolean; closedGroups: string[]; selectedReport: string; resourceFeedback?: ReactNode;
 }
-export default function FigmaPage({onAction, prompt, setPrompt, model, reportType, project, category, library, projectMode, collapsed, closedGroups, selectedReport}: ViewProps) {
+export default function FigmaPage({onAction, prompt, setPrompt, model, reportType, project, category, library, projectMode, collapsed, closedGroups, selectedReport, resourceFeedback}: ViewProps) {
   return (
     <div className="bg-[#d8e7fc] relative size-full" data-node-id="1:60" data-name="高端智库" data-collapsed={collapsed} data-project-mode={projectMode}>
       <main className="absolute backdrop-blur-[8px] bg-[rgba(255,255,255,0.48)] border border-solid border-white content-stretch flex flex-col gap-[12px] h-[903px] items-start left-[200px] pb-[16px] pt-[12px] px-[16px] rounded-[8px] top-[61px] w-[1704px]" data-node-id="1:61">
@@ -118,7 +119,7 @@ export default function FigmaPage({onAction, prompt, setPrompt, model, reportTyp
                 </p>
               </button>
             </div>
-          </div>
+          {resourceFeedback}</div>
           <button type="button" onClick={() => onAction("collapse", "")} aria-label={collapsed ? "展开写作项目" : "收起写作项目"} aria-expanded={!collapsed} className="col-1 ml-[264px] mt-[16px] relative row-1 size-[24px]" data-node-id="1:70">
             <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgGroup2363} />
           </button>

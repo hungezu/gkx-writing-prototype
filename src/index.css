@@ -262,9 +262,9 @@ button:hover {background-color:rgb(22 93 255 / 5%)}
 .danger-button {background:#f53f3f}
 .danger-button:hover {background:#ce2632}
 @media (hover:none) {.tree-more {opacity:0.55;pointer-events:auto}}
-.tree-folder-reports {display:grid;grid-template-rows:1fr;margin-top:1px;opacity:1;visibility:visible;transition:grid-template-rows 180ms cubic-bezier(.22,1,.36,1),opacity 140ms ease,margin-top 180ms ease,visibility 0s}
+.tree-folder-reports {display:grid;grid-template-rows:1fr;margin-top:1px;opacity:1;visibility:visible;transition:grid-template-rows 180ms cubic-bezier(.22,1,.36,1),opacity 140ms ease,visibility 0s}
 .tree-folder-reports-inner {min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:1px}
-.tree-folder[data-closed="true"] .tree-folder-reports {grid-template-rows:0fr;margin-top:0;opacity:0;visibility:hidden;transition:grid-template-rows 180ms cubic-bezier(.22,1,.36,1),opacity 140ms ease,margin-top 180ms ease,visibility 0s 180ms}
+.tree-folder[data-closed="true"] .tree-folder-reports {grid-template-rows:0fr;margin-top:0;opacity:0;visibility:hidden;transition:grid-template-rows 180ms cubic-bezier(.22,1,.36,1),opacity 140ms ease,visibility 0s 180ms}
 button {transition:background-color 140ms ease,color 140ms ease,transform 90ms ease,box-shadow 140ms ease}
 button:not(:disabled):active {transform:scale(.985)}
 .tree-more:not(:disabled):active {transform:scale(.92)}
